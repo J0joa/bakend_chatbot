@@ -29,31 +29,32 @@ historial_aprobaciones = []
 # Intenciones del chatbot
 intenciones = {
     "hola": "¡Hola! ¿En qué puedo ayudarte?",
-    "Hola, quiero comprar un carro": "¡Con gusto! ¿que color de carros quieres ver?",
+    "Hola, quiero comprar un carro": "¡Con gusto! ¿que color de carro y linea quieres ver quieres ver, escribeme la linea y el color por favor, en linea tenemos, pickups, camioneta y sport y en color tenemos, rojo, negro y plateado?",
     "quiero ver carros rojos": "ok, perfecto, ¿qué linea de carros quieres, sport, pickups o camioneta?, ¿qué color quieres, rojo, negro o plateado?.",
     "gracias": "Con gusto, ¿Qué color y linea  te interesa? Tenemos camionetas, sport y pickups de diferentes colores; rojo, negro y plateado.",
     "camioneta": "¿Qué color deseas para la camioneta?",
     "pickup": "¿Qué color deseas para el pickup?",
     "sport": "¿Qué color deseas para el carro sport?",
     # Variantes con artículos
-    "quiero una camioneta roja": "Agregado: camioneta rojo",
-    "quiero una camioneta negra": "Agregado: camioneta negro",
-    "quiero una camioneta plateada": "Agregado: camioneta plateado",
-    "quiero una pickup roja": "Agregado: pickup rojo",
-    "quiero una pickup negra": "Agregado: pickup negro",
-    "quiero una pickup plateada": "Agregado: pickup plateado",
-    "quiero un sport rojo": "Agregado: sport rojo",
-    "quiero un sport negro": "Agregado: sport negro",
-    "quiero un sport plateado": "Agregado: sport plateado",
+    "quiero una camioneta roja": " ok, perfecto!, puedes ir a la sección catálogo y chekear sus carácteristicas, ¿te gustaria finaciar la compra?",
+    "quiero una camioneta negra": "ok, perfecto!, puedes ir a la sección catálogo y chekear sus carácteristicas, ¿te gustaria finaciar la compra?",
+    "quiero una camioneta plateada": "ok, perfecto!, puedes ir a la sección catálogo y chekear sus carácteristicas, ¿te gustaria finaciar la compra?",
+    "quiero una pickup roja": "ok, perfecto!, puedes ir a la sección catálogo y chekear sus carácteristicas, ¿te gustaria finaciar la compra?",
+    "quiero una pickup negra": "ok, perfecto!, puedes ir a la sección catálogo y chekear sus carácteristicas, ¿te gustaria finaciar la compra?",
+    "quiero una pickup plateada": "ok, perfecto!, puedes ir a la sección catálogo y chekear sus carácteristicas, ¿te gustaria finaciar la compra?",
+    "quiero un sport rojo": "ok, perfecto!, puedes ir a la sección catálogo y chekear sus carácteristicas, ¿te gustaria finaciar la compra?",
+    "quiero un sport negro": "ok, perfecto!, puedes ir a la sección catálogo y chekear sus carácteristicas, ¿te gustaria finaciar la compra?",
+    "quiero un sport plateado": "ok, perfecto!, puedes ir a la sección catálogo y chekear sus carácteristicas, ¿te gustaria finaciar la compra?",
     # Variantes sin artículo
-    "camioneta roja": "Agregado: camioneta rojo",
-    "pickup negra": "Agregado: pickup negro",
-    "sport plateado": "Agregado: sport plateado",
+    "camioneta roja": "ok, perfecto!, puedes ir a la sección catálogo y chekear sus carácteristicas, ¿te gustaria finaciar la compra?",
+    "pickup negra": "ok, perfecto!, puedes ir a la sección catálogo y chekear sus carácteristicas, ¿te gustaria finaciar la compra?",
+    "sport plateado": "ok, perfecto!, puedes ir a la sección catálogo y chekear sus carácteristicas, ¿te gustaria finaciar la compra?",
     # Nuevas variantes comunes
-    "comprar pickup roja": "Agregado: pickup rojo",
-    "una sport negra": "Agregado: sport negro",
-    "deseo una camioneta plateada": "Agregado: camioneta plateado",
-    "Aprubas credito de finaciamiento": "claro que si, ¿Cuál es tu nombre?",
+    "comprar pickup roja": "ok, perfecto!, puedes ir a la sección catálogo y chekear sus carácteristicas, ¿te gustaria finaciar la compra?",
+    "una sport negra": "ok, perfecto!, puedes ir a la sección catálogo y chekear sus carácteristicas, ¿te gustaria finaciar la compra?",
+    "deseo una camioneta plateada": "ok, perfecto!, puedes ir a la sección catálogo y chekear sus carácteristicas, ¿te gustaria finaciar la compra?",
+    "si": "claro que si, ¿Cuál es tu nombre?",
+    "si por favor": "claro que si, ¿Cuál es tu nombre?",
     "tienes credito": "claro que si, ¿Cuál es tu nombre?",
     "Aprubas credito ": "claro que si, ¿Cuál es tu nombre?",
     "tienes finaciamiento": "claro que si, ¿Cuál es tu nombre?",
@@ -77,14 +78,14 @@ intenciones = {
 }
 
 # 🔍 Fuzzy Matching
-def encontrar_intencion(texto_usuario: str, umbral=75):
+def encontrar_intencion(texto_usuario: str, umbral=10):
     frases = list(intenciones.keys())
     resultado, puntuacion = process.extractOne(texto_usuario.lower(), frases)
     if puntuacion >= umbral:
         return resultado, intenciones[resultado]
     return None, None
 
-def encontrar_similar(texto, opciones, umbral=75):
+def encontrar_similar(texto, opciones, umbral=10):
     for opcion in opciones:
         if fuzz.partial_ratio(opcion, texto) >= umbral:
             return opcion
@@ -109,7 +110,7 @@ async def responder(mensaje: Mensaje):
             {"color": color_encontrado, "tipo": tipo_encontrado}
         )
         return {
-            "respuesta": f"Agregado: {tipo_encontrado} {color_encontrado}",
+            "respuesta": f"Tu carro {tipo_encontrado} {color_encontrado} ha sido agregado al carrito de compras. ¿Cual es tu nombre?",
             "accion": "AGREGAR_CARRO",
         }
 
