@@ -110,7 +110,7 @@ async def responder(mensaje: Mensaje):
             {"color": color_encontrado, "tipo": tipo_encontrado}
         )
         return {
-            "respuesta": f"Tu carro {tipo_encontrado} {color_encontrado} ha sido agregado al carrito de compras. ¿Cual es tu nombre?",
+            "respuesta": f"Agregado: {tipo_encontrado} {color_encontrado}",
             "accion": "AGREGAR_CARRO",
         }
 
