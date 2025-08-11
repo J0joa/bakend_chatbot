@@ -8,7 +8,10 @@ app = FastAPI()
 # Permitir comunicación con el frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",  # Local
+        "https://frontend-chat-bot-six.vercel.app",  # Producción en Vercel
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -58,23 +61,24 @@ intenciones = {
     "Aprubas credito ": "claro que si, ¿Cuál es tu nombre?",
     "tienes finaciamiento": "claro que si, ¿Cuál es tu nombre?",
     "finacias": "claro que si, ¿Cuál es tu nombre?",
-    "Mi nombre es": "¿Cuántos años tienes?", 
+    "Mi nombre es": "¿Cuántos años tienes?",
     "Me llamo luis": "¿Cuántos años tienes?",
-    "tengo 30 años" : "¿Estado civi?", 
-    "Mi edad es de 90 años" : "¿Estado civi?", 
-    "Soy casado":"¿Cuánto es tu ingreso mensual?",
-    "Estoy casado":"¿Cuánto es tu ingreso mensual?",
-    "casado":"¿Cuánto es tu ingreso mensual?",
-    "Soy independiente":"¿Cuánto es tu ingreso mensual?",
-    "Estoy independiente":"¿Cuánto es tu ingreso mensual?",
-    "independiente":"¿Cuánto es tu ingreso mensual?",
-    "Soy pensionado":"¿Cuánto es tu ingreso mensual?",
-    "Estoy pensionado":"¿Cuánto es tu ingreso mensual?",
-    "pensionado":"¿Cuánto es tu ingreso mensual?",
+    "tengo 30 años": "¿Estado civi?",
+    "Mi edad es de 90 años": "¿Estado civi?",
+    "Soy casado": "¿Cuánto es tu ingreso mensual?",
+    "Estoy casado": "¿Cuánto es tu ingreso mensual?",
+    "casado": "¿Cuánto es tu ingreso mensual?",
+    "Soy independiente": "¿Cuánto es tu ingreso mensual?",
+    "Estoy independiente": "¿Cuánto es tu ingreso mensual?",
+    "independiente": "¿Cuánto es tu ingreso mensual?",
+    "Soy pensionado": "¿Cuánto es tu ingreso mensual?",
+    "Estoy pensionado": "¿Cuánto es tu ingreso mensual?",
+    "pensionado": "¿Cuánto es tu ingreso mensual?",
     "gano 2000000": "¿Cuánto tiempo lleva laborando?",
     "yo gano 2000000": "¿Cuánto tiempo lleva laborando?",
     "es de 2000000": "¿Cuánto tiempo lleva laborando en meses?",
 }
+
 
 # 🔍 Fuzzy Matching
 def encontrar_intencion(texto_usuario: str, umbral=75):
@@ -84,15 +88,44 @@ def encontrar_intencion(texto_usuario: str, umbral=75):
         return resultado, intenciones[resultado]
     return None, None
 
+
 def encontrar_similar(texto, opciones, umbral=75):
     for opcion in opciones:
         if fuzz.partial_ratio(opcion, texto) >= umbral:
             return opcion
     return None
 
+
 # 👤 Modelo de mensaje del usuario
 class Mensaje(BaseModel):
     texto: str
+
+
+from fastapi import HTTPException
+
+# Modelo para el nuevo endpoint de usuario
+class Usuario(BaseModel):
+    nombre: str
+    edad: int
+    ocupacion: str
+    tiempo_laborado: int
+
+@app.post("/guardar_usuario")
+async def guardar_usuario(usuario: Usuario):
+    # Validaciones básicas
+    if usuario.edad <= 0 or usuario.tiempo_laborado < 0:
+        raise HTTPException(status_code=400, detail="Edad o tiempo laborado inválido")
+
+    # Guardar datos en la variable global (reemplaza datos_usuario con la info enviada)
+    datos_usuario["nombre"] = usuario.nombre
+    datos_usuario["edad"] = usuario.edad
+    datos_usuario["ocupacion"] = usuario.ocupacion
+    datos_usuario["tiempo_laborado"] = usuario.tiempo_laborado
+
+    return {"mensaje": "Usuario guardado correctamente"}
+
+
+
 
 @app.post("/chatbot")
 async def responder(mensaje: Mensaje):
@@ -184,25 +217,29 @@ async def responder(mensaje: Mensaje):
             accion_final = "CREDITO_APROBADO" if aprobado else "CREDITO_RECHAZADO"
 
             # Guardar en historial (copia del usuario actual)
-            historial_aprobaciones.append({
-                "nombre": datos_usuario["nombre"],
-                "edad": datos_usuario["edad"],
-                "ingresos": datos_usuario["ingresos"],
-                "ocupacion": datos_usuario["ocupacion"],
-                "tiempo_laborado": datos_usuario["tiempo_laborado"],
-                "resultado": respuesta_final,
-            })
+            historial_aprobaciones.append(
+                {
+                    "nombre": datos_usuario["nombre"],
+                    "edad": datos_usuario["edad"],
+                    "ingresos": datos_usuario["ingresos"],
+                    "ocupacion": datos_usuario["ocupacion"],
+                    "tiempo_laborado": datos_usuario["tiempo_laborado"],
+                    "resultado": respuesta_final,
+                }
+            )
 
             # Reiniciar datos para nuevo usuario
             datos_usuario.clear()
-            datos_usuario.update({
-                "nombre": "",
-                "edad": 0,
-                "ingresos": 0,
-                "ocupacion": "",
-                "tiempo_laborado": 0,
-                "carros_seleccionados": [],
-            })
+            datos_usuario.update(
+                {
+                    "nombre": "",
+                    "edad": 0,
+                    "ingresos": 0,
+                    "ocupacion": "",
+                    "tiempo_laborado": 0,
+                    "carros_seleccionados": [],
+                }
+            )
 
             return {
                 "respuesta": respuesta_final,
@@ -221,10 +258,12 @@ async def responder(mensaje: Mensaje):
         "accion": None,
     }
 
+
 @app.get("/usuario")
 def obtener_usuario():
     print(datos_usuario)
     return datos_usuario
+
 
 @app.get("/historial")
 def ver_historial():
